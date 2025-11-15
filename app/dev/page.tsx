@@ -4,6 +4,7 @@ import ProjectCard from '@/components/ProjectCard';
 import { useProjects } from '@/hooks/useProjects';
 import { TagPill } from '@/components/TagPill/TagPill';
 import CommentThread from '@/components/CommentThread/CommentThread';
+import { LampLogin } from '@/components/lamp/LampLogin';
 
 export default function DevPage() {
   const { projects } = useProjects();
@@ -31,6 +32,11 @@ export default function DevPage() {
           <CommentThread projectId={project.id} />
         </section>
       )}
+
+      <section>
+        <h2 className="text-2xl font-bold mb-4">Cute Lamp Login Interaction</h2>
+        <LampLogin />
+      </section>
     </main>
   );
 }
