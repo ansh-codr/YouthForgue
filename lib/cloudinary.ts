@@ -16,15 +16,15 @@ interface CloudinaryUploadResponse {
 
 interface UploadOptions {
   folder?: string;
-  transformation?: string;
   tags?: string[];
+  applyTransformation?: string; // Transformation to apply AFTER upload via URL
 }
 
 /**
  * Upload an image to Cloudinary
  * @param file - The file to upload
- * @param options - Upload options (folder, transformation, tags)
- * @returns The secure URL of the uploaded image
+ * @param options - Upload options (folder, tags, applyTransformation)
+ * @returns The secure URL of the uploaded image (with transformation applied if specified)
  */
 export async function uploadImageToCloudinary(
   file: File,
@@ -43,17 +43,13 @@ export async function uploadImageToCloudinary(
   formData.append('file', file);
   formData.append('upload_preset', uploadPreset);
 
-  // Add optional parameters
+  // Add optional parameters (only those allowed for unsigned uploads)
   if (options.folder) {
     formData.append('folder', options.folder);
   }
 
   if (options.tags && options.tags.length > 0) {
     formData.append('tags', options.tags.join(','));
-  }
-
-  if (options.transformation) {
-    formData.append('transformation', options.transformation);
   }
 
   try {
@@ -71,6 +67,12 @@ export async function uploadImageToCloudinary(
     }
 
     const data: CloudinaryUploadResponse = await response.json();
+    
+    // Apply transformation via URL if specified
+    if (options.applyTransformation) {
+      return getTransformedImageUrl(data.secure_url, options.applyTransformation);
+    }
+    
     return data.secure_url;
   } catch (error: any) {
     console.error('Cloudinary upload error:', error);
@@ -88,7 +90,7 @@ export async function uploadProfilePhoto(file: File, userId: string): Promise<st
   return uploadImageToCloudinary(file, {
     folder: `youthforge/profile-photos/${userId}`,
     tags: ['profile', 'user', userId],
-    transformation: 'c_fill,g_face,h_400,w_400', // Crop to 400x400, focus on face
+    applyTransformation: 'c_fill,g_face,h_400,w_400', // Crop to 400x400, focus on face
   });
 }
 
@@ -102,7 +104,7 @@ export async function uploadProjectImage(file: File, projectId: string): Promise
   return uploadImageToCloudinary(file, {
     folder: `youthforge/project-media/${projectId}`,
     tags: ['project', projectId],
-    transformation: 'c_limit,w_1920,h_1080,q_auto', // Max 1920x1080, auto quality
+    applyTransformation: 'c_limit,w_1920,h_1080,q_auto', // Max 1920x1080, auto quality
   });
 }
 
