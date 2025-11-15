@@ -88,18 +88,43 @@ NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 
 ## Build Settings
 
-Netlify should auto-detect these, but verify:
+### Automatic Configuration (Recommended)
+
+The `netlify.toml` file in the repo configures everything automatically:
 
 ```toml
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [build]
   command = "npm run build"
-  publish = ".next"
+  # No publish directory - plugin manages output
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+[build.environment]
+  NODE_VERSION = "18"
 ```
+
+### Manual Configuration (If needed)
+
+If you need to configure manually in Netlify UI:
+
+1. **Build command:** `npm run build`
+2. **Publish directory:** Leave empty or delete `/out` setting
+3. **Base directory:** Leave empty
+
+⚠️ **IMPORTANT:** Do NOT set publish directory to `/out`. The Next.js plugin manages output automatically.
+
+### Common Configuration Mistake
+
+**Error:** "Your publish directory was not found at: /opt/build/repo/out"
+
+**Cause:** Publish directory is set to `/out` but we're not using static export
+
+**Fix:**
+1. Go to: Site Settings → Build & Deploy → Continuous Deployment → Build settings
+2. Click "Edit settings"
+3. Clear the "Publish directory" field (or change from `/out` to empty)
+4. Save and redeploy
 
 ## Testing Locally
 
@@ -122,6 +147,14 @@ npm start
 
 ## Common Build Errors & Fixes
 
+### Error: "Your publish directory was not found at: /opt/build/repo/out"
+**Status:** ✅ Fixed with `netlify.toml`
+**Cause:** Publish directory was set to `/out` but we're using Next.js runtime (not static export)
+**Solution:** 
+1. The `netlify.toml` file in the repo now handles this automatically
+2. OR manually clear publish directory in Netlify UI: Settings → Build & Deploy → Edit settings → Clear "Publish directory"
+3. Redeploy after clearing
+
 ### Error: "Firebase can only be initialized in the browser"
 **Status:** ✅ Fixed
 **Cause:** Firebase being called during server-side rendering
@@ -142,6 +175,8 @@ npm start
 - [ ] All environment variables set in Netlify
 - [ ] Firebase project configured and credentials obtained
 - [ ] `NEXT_PUBLIC_USE_FIREBASE=true` set in Netlify
+- [ ] **Publish directory is EMPTY (not set to `/out`)** in Netlify UI
+- [ ] `netlify.toml` committed to repo
 - [ ] Build succeeds locally with `npm run build`
 - [ ] Dynamic route works at `/projects/[slugOrId]`
 - [ ] Git changes committed and pushed to main

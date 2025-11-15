@@ -45,10 +45,22 @@ When you deploy to Netlify **without** `output: 'export'`:
 
 ## Deployment Notes
 
-1. **No special Netlify configuration needed** - Netlify auto-detects Next.js
+1. **No special Netlify configuration needed** - `netlify.toml` handles everything
 2. **Build command:** `npm run build` (default)
-3. **Publish directory:** `.next` (auto-detected)
+3. **Publish directory:** Must be EMPTY (not `/out`) - let the Next.js plugin manage it
 4. **Dynamic routes now work:** `/projects/abc123`, `/projects/my-cool-project-slug`, etc.
+
+### Critical: Netlify UI Configuration
+
+⚠️ **If you see error:** "Your publish directory was not found at: /opt/build/repo/out"
+
+**Fix:**
+1. Go to Netlify: Site Settings → Build & Deploy → Continuous Deployment → Build settings
+2. Click "Edit settings"
+3. **Clear the "Publish directory" field** (remove `/out`)
+4. Save and redeploy
+
+The `netlify.toml` file in the repo configures the correct settings automatically.
 
 ## Testing
 
