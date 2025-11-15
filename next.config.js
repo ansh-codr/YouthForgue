@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  // Removed output: 'export' - Netlify supports Next.js natively with dynamic routes
+  // Static export doesn't work well with dynamic routes like /projects/[slugOrId]
   eslint: {
     ignoreDuringBuilds: true,
   },

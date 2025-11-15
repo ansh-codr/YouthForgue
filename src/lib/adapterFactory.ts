@@ -12,3 +12,11 @@ export const getProjectsAdapter = (): ProjectsAdapter => {
   cachedAdapter = FEATURE_FLAGS.useFirebaseAdapter ? firebaseAdapter : mockAdapter;
   return cachedAdapter;
 };
+
+export const overrideProjectsAdapter = (adapter: ProjectsAdapter | null) => {
+  cachedAdapter = adapter;
+};
+
+export const resetProjectsAdapter = () => {
+  cachedAdapter = null;
+};

@@ -412,6 +412,7 @@ export function ProjectForm() {
               accept="image/*"
               multiple
               className="hidden"
+              data-testid="project-media-input"
               onChange={(event) => handleFiles(event.target.files)}
               disabled={uploadItems.length >= PROJECT_IMAGE_LIMIT}
             />
