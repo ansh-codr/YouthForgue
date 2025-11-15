@@ -1,8 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { Clock, Target, Users, Trophy } from 'lucide-react';
+import { Clock, Users, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { GlassModal } from '@/components/Modal/GlassModal';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ChallengeCardProps {
   id: string;
@@ -10,9 +13,9 @@ interface ChallengeCardProps {
   description: string;
   difficulty: string;
   category: string;
-  image: string;
+  image?: string;
   tags: string[];
-  prize: string;
+  prize?: string;
   participants: number;
   deadline: string;
 }
@@ -29,6 +32,18 @@ export default function ChallengeCard({
   participants,
   deadline,
 }: ChallengeCardProps) {
+  const [open, setOpen] = useState(false);
+  const [joining, setJoining] = useState(false);
+
+  const handleJoinChallenge = async () => {
+    setJoining(true);
+    // Simulate joining (in future, integrate with Firebase)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast.success(`Successfully joined "${title}"!`);
+    setOpen(false);
+    setJoining(false);
+  };
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Easy':
@@ -52,18 +67,21 @@ export default function ChallengeCard({
       className="glass-card group cursor-pointer h-full"
     >
       {/* Image */}
-      <div className="relative h-40 -mx-6 -mt-6 mb-4 rounded-t-2xl overflow-hidden">
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        <span className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1 rounded-full border ${getDifficultyColor(difficulty)}`}>
-          {difficulty}
-        </span>
-      </div>
+      {image && (
+        <div className="relative h-40 -mx-6 -mt-6 mb-4 rounded-t-2xl overflow-hidden">
+          <Image
+            src={image}
+            alt={title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <span className={`absolute top-3 right-3 text-xs font-semibold px-3 py-1 rounded-full border ${getDifficultyColor(difficulty)}`}>
+            {difficulty}
+          </span>
+        </div>
+      )}
 
       {/* Content */}
       <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-accent transition-colors">
@@ -111,9 +129,42 @@ export default function ChallengeCard({
       </div>
 
       {/* CTA Button */}
-      <button className="w-full mt-4 py-2 glass-button text-sm font-medium">
-        Join Challenge
-      </button>
+      <GlassModal
+        trigger={
+          <button 
+            className="w-full mt-4 py-2 glass-button text-sm font-medium"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            Join Challenge
+          </button>
+        }
+        open={open}
+        onOpenChange={setOpen}
+        title={`Join ${title}?`}
+        description="Confirm you want to participate in this challenge"
+        size="sm"
+      >
+        <div className="p-5 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            By joining this challenge, you'll be added to the participants list and receive updates about deadlines and prizes.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button className="glass-button-ghost text-xs" onClick={() => setOpen(false)}>
+              Cancel
+            </button>
+            <button
+              className="glass-button text-xs"
+              disabled={joining}
+              onClick={handleJoinChallenge}
+            >
+              {joining ? 'Joining...' : 'Confirm'}
+            </button>
+          </div>
+        </div>
+      </GlassModal>
     </motion.div>
   );
 }

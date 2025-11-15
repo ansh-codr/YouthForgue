@@ -1,12 +1,18 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Zap } from 'lucide-react';
-import ProjectCard from '@/components/cards/ProjectCard';
+import { useState } from 'react';
+import { ArrowRight, Sparkles, Zap, Loader2 } from 'lucide-react';
+import { ProjectCard } from '@/components/ProjectCard';
 import DeveloperCard from '@/components/cards/DeveloperCard';
 import ChallengeCard from '@/components/cards/ChallengeCard';
-import { mockProjects, mockDevelopers, mockChallenges } from '@/lib/mockData';
+import { useProjects } from '@/hooks/useProjects';
+import { useDevelopers } from '@/hooks/useDevelopers';
+import { useChallenges } from '@/hooks/useChallenges';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthModal } from '@/components/auth/AuthModal';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -20,6 +26,26 @@ const containerVariants = {
 };
 
 export default function Home() {
+  const { user } = useAuth();
+  const { projects, loading: projectsLoading } = useProjects();
+  const { developers, loading: devsLoading } = useDevelopers();
+  const { challenges, loading: challengesLoading } = useChallenges();
+  const router = useRouter();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const handleGetStarted = () => {
+    if (user) {
+      router.push('/projects');
+    } else {
+      setAuthModalOpen(true);
+    }
+  };
+
+  const featuredProjects = projects.filter(p => p.isFeatured).slice(0, 3);
+  const displayProjects = featuredProjects.length > 0 ? featuredProjects : projects.slice(0, 3);
+  const displayDevelopers = developers.slice(0, 3);
+  const displayChallenges = challenges.slice(0, 3);
+  
   return (
     <div className="min-h-screen overflow-hidden">
       {/* Background Gradient */}
@@ -54,13 +80,19 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="glass-button inline-flex items-center gap-2 px-8 py-3">
-                Get Started
+              <button 
+                onClick={handleGetStarted}
+                className="glass-button inline-flex items-center gap-2 px-8 py-3"
+              >
+                {user ? 'View Projects' : 'Get Started'}
                 <ArrowRight size={18} />
               </button>
-              <button className="glass-button-ghost inline-flex items-center gap-2 px-8 py-3">
+              <Link 
+                href="/projects" 
+                className="glass-button-ghost inline-flex items-center gap-2 px-8 py-3"
+              >
                 Explore Projects
-              </button>
+              </Link>
             </div>
           </motion.div>
 
@@ -119,9 +151,19 @@ export default function Home() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {mockProjects.map((project) => (
-              <ProjectCard key={project.id} {...project} />
-            ))}
+            {projectsLoading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="glass-card animate-pulse h-96" />
+              ))
+            ) : displayProjects.length > 0 ? (
+              displayProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12 text-muted-foreground">
+                <p>No projects yet. Be the first to create one!</p>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -157,9 +199,19 @@ export default function Home() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {mockDevelopers.slice(0, 3).map((developer) => (
-              <DeveloperCard key={developer.id} {...developer} />
-            ))}
+            {devsLoading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="glass-card animate-pulse h-80" />
+              ))
+            ) : displayDevelopers.length > 0 ? (
+              displayDevelopers.map((developer) => (
+                <DeveloperCard key={developer.id} {...developer} />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12 text-muted-foreground">
+                <p>No developers yet. Complete your profile to be featured!</p>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -195,9 +247,19 @@ export default function Home() {
             viewport={{ once: true }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {mockChallenges.slice(0, 3).map((challenge) => (
-              <ChallengeCard key={challenge.id} {...challenge} />
-            ))}
+            {challengesLoading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="glass-card animate-pulse h-80" />
+              ))
+            ) : displayChallenges.length > 0 ? (
+              displayChallenges.map((challenge) => (
+                <ChallengeCard key={challenge.id} {...challenge} />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12 text-muted-foreground">
+                <p>No challenges yet. Check back soon for exciting opportunities!</p>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -218,17 +280,26 @@ export default function Home() {
               and building their portfolios.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="glass-button px-8 py-3 inline-flex items-center gap-2">
-                Create Account
+              <button 
+                onClick={() => user ? router.push('/projects/new') : setAuthModalOpen(true)}
+                className="glass-button px-8 py-3 inline-flex items-center gap-2"
+              >
+                {user ? 'Create Project' : 'Get Started'}
                 <ArrowRight size={18} />
               </button>
-              <button className="glass-button-ghost px-8 py-3">
+              <Link 
+                href="/about" 
+                className="glass-button-ghost px-8 py-3"
+              >
                 Learn More
-              </button>
+              </Link>
             </div>
           </motion.div>
         </div>
       </section>
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} defaultMode="signup" />
     </div>
   );
 }

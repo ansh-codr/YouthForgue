@@ -1,0 +1,61 @@
+# Netlify Configuration for YouthForge
+# This file configures how Netlify builds and deploys your Next.js application
+
+[build]
+  # Build command - runs the Next.js build
+  command = "npm run build"
+  
+  # Directory where the built files are located
+  publish = "out"
+  
+  # Node.js version to use
+  [build.environment]
+    NODE_VERSION = "18"
+
+# Redirect rules for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Cache control for static assets
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Specific headers for HTML files
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Specific headers for service worker
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Environment variables (configure these in Netlify UI)
+# NEXT_PUBLIC_FB_API_KEY
+# NEXT_PUBLIC_FB_AUTH_DOMAIN
+# NEXT_PUBLIC_FB_PROJECT_ID
+# NEXT_PUBLIC_FB_STORAGE_BUCKET
+# NEXT_PUBLIC_FB_APP_ID
+# NEXT_PUBLIC_FB_MESSAGING_SENDER_ID
+# NEXT_PUBLIC_FB_MEASUREMENT_ID
+# NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+# NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+# NEXT_PUBLIC_DATA_SOURCE
+
+# Functions configuration (if needed in future)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

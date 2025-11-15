@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "users": [
+    {"id":"user_001","username":"arjun_mehta","displayName":"Arjun Mehta","skills":["React","Figma"],"links":["https://github.com/arjun"],"role":"user","createdAt":"2025-08-12T09:30:00Z","banned":false},
+    {"id":"user_002","username":"anika_rao","displayName":"Anika Rao","skills":["Design","Flutter"],"links":["https://github.com/anika"],"role":"user","createdAt":"2025-09-01T10:45:00Z","banned":false},
+    {"id":"user_003","username":"leo_khan","displayName":"Leo Khan","skills":["Audio","ML"],"links":["https://github.com/leo"],"role":"user","createdAt":"2025-07-18T08:00:00Z","banned":false}
+  ],
+  "projects": [
+    {"id":"proj_eco_001","title":"Eco-Design App","slug":"eco-design-app","description":"A mobile-first web app...","authorId":"user_002","authorSnapshot":{"id":"user_002","displayName":"Anika Rao","avatarUrl":"/seed/avatars/anika.jpg"},"media":[{"id":"m1","type":"image","url":"/seed/projects/eco1.jpg","thumbUrl":"/seed/projects/eco1_thumb.jpg"}],"tags":["Climate","Design","Mobile"],"likesCount":42,"commentsCount":7,"createdAt":"2025-10-01T10:00:00Z","updatedAt":"2025-10-10T13:20:00Z","featured":true,"repoUrl":"https://github.com/anika/eco-design-app","visibility":"public"},
+    {"id":"proj_music_002","title":"AI Music Generator","slug":"ai-music-generator","description":"Generate tracks using ML","authorId":"user_003","media":[],"tags":["AI","Music"],"likesCount":18,"commentsCount":5,"createdAt":"2025-09-12T14:20:00Z","featured":false,"repoUrl":"https://github.com/leo/ai-music","visibility":"public"},
+    {"id":"proj_stem_003","title":"Pocket Lab Kit","slug":"pocket-lab-kit","description":"Portable STEM experiments","authorId":"user_001","media":[],"tags":["STEM","Hardware"],"likesCount":26,"commentsCount":2,"createdAt":"2025-06-20T09:00:00Z","featured":false,"visibility":"public"}
+  ],
+  "challenges": [
+    {"id":"chg_5001","title":"Design for campus recycling","prompt":"...","authorId":"user_010","tags":["Climate","Design"],"createdAt":"2025-09-20T07:00:00Z","deadline":"2025-12-01T23:59:59Z","responsesCount":5,"visibility":"public"},
+    {"id":"chg_5002","title":"Short story prompt: Future City","prompt":"...","authorId":"user_005","tags":["Writing"],"createdAt":"2025-10-05T12:00:00Z","deadline":null,"responsesCount":12,"visibility":"public"}
+  ],
+  "comments": [
+    {"id":"cmt_0001","parentType":"project","parentId":"proj_eco_001","authorId":"user_005","content":"Really loved the onboarding flow...","createdAt":"2025-10-02T08:45:00Z","likes":3,"edited":false}
+  ]
+}

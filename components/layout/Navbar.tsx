@@ -3,14 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Menu, X, Moon, Sun } from 'lucide-react';
+import { Menu, X, Moon, Sun, Plus } from 'lucide-react';
 import { useThemeStore } from '@/lib/store';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { UserMenu } from '@/components/auth/UserMenu';
+import { Button } from '@/components/ui/button';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const pathname = usePathname();
   const { theme, toggleTheme } = useThemeStore();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,7 +81,7 @@ export default function Navbar() {
           </div>
 
           {/* Right Side - Theme Toggle & Auth */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
               className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -88,9 +94,29 @@ export default function Navbar() {
               )}
             </button>
 
-            <button className="hidden sm:block glass-button text-sm">
-              Login
-            </button>
+            {!loading && (
+              <>
+                {user ? (
+                  <>
+                    <Link 
+                      href="/projects/new" 
+                      className="hidden sm:flex items-center gap-2 glass-button text-sm"
+                    >
+                      <Plus size={16} />
+                      New Project
+                    </Link>
+                    <UserMenu />
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => setAuthModalOpen(true)}
+                    className="hidden sm:block glass-button text-sm"
+                  >
+                    Login
+                  </Button>
+                )}
+              </>
+            )}
 
             {/* Mobile Menu Toggle */}
             <button
@@ -120,10 +146,45 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <button className="w-full glass-button text-sm">Login</button>
+            {!loading && (
+              <>
+                {user ? (
+                  <>
+                    <Link 
+                      href="/projects/new" 
+                      className="flex items-center justify-center gap-2 w-full glass-button text-sm"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Plus size={16} />
+                      New Project
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 rounded-lg text-muted-foreground hover:bg-white/10 transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => {
+                      setAuthModalOpen(true);
+                      setIsOpen(false);
+                    }}
+                    className="w-full glass-button text-sm"
+                  >
+                    Login
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </nav>
   );
 }

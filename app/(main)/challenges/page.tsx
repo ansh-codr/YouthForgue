@@ -2,11 +2,14 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Loader2 } from 'lucide-react';
 import ChallengeCard from '@/components/cards/ChallengeCard';
-import { mockChallenges, challengeCategories } from '@/lib/mockData';
+import { useChallenges } from '@/hooks/useChallenges';
+
+const challengeCategories = ['All', 'AI/Wellness', 'EdTech', 'Mobile', 'Web Dev', 'Sustainability', 'Collaboration', 'Design', 'Blockchain', 'IoT'];
 
 export default function ChallengesPage() {
+  const { challenges, loading } = useChallenges();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
@@ -16,7 +19,7 @@ export default function ChallengesPage() {
   const difficulties = ['Easy', 'Intermediate', 'Hard'];
 
   const filteredChallenges = useMemo(() => {
-    return mockChallenges.filter((challenge) => {
+    return challenges.filter((challenge) => {
       const matchesSearch =
         challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         challenge.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -30,7 +33,7 @@ export default function ChallengesPage() {
 
       return matchesSearch && matchesCategory && matchesDifficulty;
     });
-  }, [searchQuery, selectedCategory, selectedDifficulty]);
+  }, [challenges, searchQuery, selectedCategory, selectedDifficulty]);
 
   const paginatedChallenges = useMemo(() => {
     const startIdx = (currentPage - 1) * itemsPerPage;
@@ -176,7 +179,11 @@ export default function ChallengesPage() {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-              {paginatedChallenges.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-12 w-12 animate-spin text-accent" />
+                </div>
+              ) : paginatedChallenges.length > 0 ? (
                 <>
                   <motion.div
                     initial={{ opacity: 0 }}

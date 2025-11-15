@@ -2,26 +2,35 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, X } from 'lucide-react';
-import ProjectCard from '@/components/cards/ProjectCard';
-import { mockProjects, categories } from '@/lib/mockData';
+import { Search, Filter, X, Loader2, Plus } from 'lucide-react';
+import { ProjectCard } from '@/components/ProjectCard';
+import { useProjects } from '@/hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+const categories = ['All', 'Web', 'Mobile', 'AI/ML', 'Blockchain', 'IoT', 'Game', 'Other'];
 
 export default function ProjectsPage() {
+  const { projects, loading } = useProjects();
+  const { user } = useAuth();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
   const filteredProjects = useMemo(() => {
-    return mockProjects.filter((project) => {
+    return projects.filter((project) => {
       const matchesSearch =
         project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase());
+        (project.description?.toLowerCase() || project.excerpt.toLowerCase()).includes(searchQuery.toLowerCase()) ||
+        project.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory =
-        selectedCategory === 'All' || project.category === selectedCategory;
+        selectedCategory === 'All' || project.tags.some(tag => tag.toLowerCase() === selectedCategory.toLowerCase());
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [projects, searchQuery, selectedCategory]);
 
   const paginatedProjects = useMemo(() => {
     const startIdx = (currentPage - 1) * itemsPerPage;
@@ -107,7 +116,14 @@ export default function ProjectsPage() {
           </motion.div>
 
           {/* Projects Grid */}
-          {paginatedProjects.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center space-y-4">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-accent" />
+                <p className="text-muted-foreground">Loading projects...</p>
+              </div>
+            </div>
+          ) : paginatedProjects.length > 0 ? (
             <>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -122,7 +138,7 @@ export default function ProjectsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: idx * 0.05 }}
                   >
-                    <ProjectCard {...project} />
+                    <ProjectCard project={project} />
                   </motion.div>
                 ))}
               </motion.div>
@@ -174,11 +190,13 @@ export default function ProjectsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
-              className="text-center py-20"
+              className="text-center py-20 glass-card"
             >
               <h3 className="text-2xl font-bold mb-2">No projects found</h3>
               <p className="text-muted-foreground mb-6">
-                Try adjusting your filters or search query
+                {searchQuery || selectedCategory !== 'All' 
+                  ? 'Try adjusting your filters or search query' 
+                  : 'Be the first to create a project!'}
               </p>
               <button
                 onClick={() => {
@@ -194,6 +212,23 @@ export default function ProjectsPage() {
           )}
         </div>
       </section>
+
+      {/* Floating Action Button */}
+      {user && (
+        <Link href="/projects/new">
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-r from-accent to-accent-secondary shadow-lg shadow-accent/50 flex items-center justify-center z-50 hover:shadow-xl hover:shadow-accent/70 transition-shadow"
+            aria-label="Create new project"
+          >
+            <Plus size={28} className="text-white" />
+          </motion.button>
+        </Link>
+      )}
     </div>
   );
 }

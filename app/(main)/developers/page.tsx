@@ -2,22 +2,25 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Loader2 } from 'lucide-react';
 import DeveloperCard from '@/components/cards/DeveloperCard';
-import { mockDevelopers, skillTags } from '@/lib/mockData';
+import { useDevelopers } from '@/hooks/useDevelopers';
+
+const skillTags = ['React', 'Node.js', 'Python', 'TypeScript', 'Vue', 'Angular', 'Django', 'FastAPI', 'Flutter', 'Swift', 'Java', 'Go', 'Rust', 'Next.js', 'TailwindCSS'];
 
 export default function DevelopersPage() {
+  const { developers, loading } = useDevelopers();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
   const filteredDevelopers = useMemo(() => {
-    return mockDevelopers.filter((dev) => {
+    return developers.filter((dev) => {
       const matchesSearch =
         dev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dev.bio.toLowerCase().includes(searchQuery.toLowerCase());
+        (dev.title && dev.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (dev.bio && dev.bio.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesSkills =
         selectedSkills.length === 0 ||
@@ -29,7 +32,7 @@ export default function DevelopersPage() {
 
       return matchesSearch && matchesSkills;
     });
-  }, [searchQuery, selectedSkills]);
+  }, [developers, searchQuery, selectedSkills]);
 
   const paginatedDevelopers = useMemo(() => {
     const startIdx = (currentPage - 1) * itemsPerPage;
@@ -147,7 +150,11 @@ export default function DevelopersPage() {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-              {paginatedDevelopers.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-12 w-12 animate-spin text-accent" />
+                </div>
+              ) : paginatedDevelopers.length > 0 ? (
                 <>
                   <motion.div
                     initial={{ opacity: 0 }}
