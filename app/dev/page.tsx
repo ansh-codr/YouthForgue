@@ -1,3 +1,5 @@
+'use client';
+
 import ProjectCard from '@/components/ProjectCard';
 import { useProjects } from '@/hooks/useProjects';
 import { TagPill } from '@/components/TagPill/TagPill';
