@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjectFeed, useCreateProject } from '@/src/hooks/useProjects';
+import { slugify } from '@/src/lib/slug';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function DevAuthPage() {
   const { user, loading, error, signIn, signUp, signInWithGoogle, signOut } = useAuth();
-  const { projects, loading: projectsLoading, createProject } = useProjects();
+  const { projects, isLoading: projectsLoading, refresh } = useProjectFeed({ limit: 10 });
+  const createProjectMutation = useCreateProject();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,25 +50,28 @@ export default function DevAuthPage() {
       return;
     }
 
-    const result = await createProject({
-      title: 'Sample Firebase Project',
-      excerpt: 'This is a test project created from the dev auth page.',
-      description: 'Testing Firebase Firestore integration with YouthForge.',
-      author: {
-        id: user.uid,
-        name: user.displayName || user.email || 'Anonymous',
-        avatar: user.photoURL || '/avatar-placeholder.png',
-      },
-      tags: ['firebase', 'test', 'dev'],
-      media: [],
-      repoLink: 'https://github.com/example/sample',
-      isFeatured: false,
-    });
-
-    if (result && 'success' in result && result.success) {
-      alert(`Project created with ID: ${'id' in result ? result.id : 'unknown'}`);
-    } else if (result && 'error' in result) {
-      alert(`Failed to create project: ${result.error}`);
+    try {
+      const project = await createProjectMutation.mutateAsync({
+        owner: {
+          id: user.uid,
+          displayName: user.displayName || user.email || 'Anonymous',
+          avatarUrl: user.photoURL || '/avatar-placeholder.png',
+          role: 'member',
+        },
+        title: 'Sample Firebase Project',
+        slug: slugify(`sample-${Date.now()}`),
+        summary: 'This is a test project created from the dev auth page.',
+        description: 'Testing Firebase Firestore integration with YouthForge.',
+        tags: ['firebase', 'test', 'dev'],
+        media: [],
+        visibility: 'public',
+        repoUrl: 'https://github.com/example/sample',
+      });
+      alert(`Project created with ID: ${project.id}`);
+      refresh();
+    } catch (creationError) {
+      const message = creationError instanceof Error ? creationError.message : 'Failed to create project';
+      alert(message);
     }
   };
 
@@ -167,9 +172,9 @@ export default function DevAuthPage() {
               {projects.slice(0, 3).map((project) => (
                 <div key={project.id} className="border-l-2 border-blue-500 pl-3 mb-2">
                   <p className="font-semibold">{project.title}</p>
-                  <p className="text-sm text-gray-600">{project.excerpt}</p>
+                  <p className="text-sm text-gray-600">{project.summary}</p>
                   <p className="text-xs text-gray-400">
-                    {project.likeCount} likes • {project.commentCount} comments
+                    {project.likesCount} likes • {project.commentsCount} comments
                   </p>
                 </div>
               ))}

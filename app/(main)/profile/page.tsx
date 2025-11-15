@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Github, Linkedin, Globe, MapPin, Users, Zap, Edit2, Mail, Calendar } from 'lucide-react';
 import { ProjectCard } from '@/components/ProjectCard';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjectFeed } from '@/src/hooks/useProjects';
+import type { ProjectRecord } from '@/src/types/project';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { AuthGuard } from '@/components/auth/AuthGuard';
@@ -16,14 +17,17 @@ import Link from 'next/link';
 export default function ProfilePage() {
   const { user } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects, isLoading: projectsLoading } = useProjectFeed({ limit: 60 });
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'projects' | 'challenges' | 'about'>(
     'projects'
   );
 
   // Filter projects by current user
-  const userProjects = projects.filter(p => p.author.id === user?.uid);
+  const userProjects = useMemo<ProjectRecord[]>(() => {
+    if (!user?.uid) return [];
+    return projects.filter((p) => p.owner.id === user.uid);
+  }, [projects, user?.uid]);
 
   const displayName = profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'User';
   const joinDate = user?.metadata?.creationTime 
@@ -194,7 +198,7 @@ export default function ProfilePage() {
                 },
                 {
                   label: 'Contributions',
-                  value: userProjects.reduce((sum, p) => sum + p.likeCount, 0),
+                  value: userProjects.reduce((sum, p) => sum + p.likesCount, 0),
                   icon: Zap,
                 },
               ].map(({ label, value, icon: Icon }, idx) => (

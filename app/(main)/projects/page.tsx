@@ -1,234 +1,127 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, X, Loader2, Plus } from 'lucide-react';
-import { ProjectCard } from '@/components/ProjectCard';
-import { useProjects } from '@/hooks/useProjects';
-import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { Filter, Loader2, Search, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { ProjectCard } from '@/components/ProjectCard';
+import { useProjectFeed } from '@/src/hooks/useProjects';
+import type { ProjectRecord, ProjectSort } from '@/src/types/project';
 
-const categories = ['All', 'Web', 'Mobile', 'AI/ML', 'Blockchain', 'IoT', 'Game', 'Other'];
+const TAGS = ['All', 'AI/ML', 'Design', 'DevTools', 'Mobile', 'Open Source', 'Web3', 'Productivity'];
+const SORTS: ProjectSort[] = ['new', 'popular', 'featured'];
 
 export default function ProjectsPage() {
-  const { projects, loading } = useProjects();
-  const { user } = useAuth();
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const [selectedTag, setSelectedTag] = useState<string>('All');
+  const [sort, setSort] = useState<ProjectSort>('new');
+  const [search, setSearch] = useState('');
 
-  const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
-      const matchesSearch =
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (project.description?.toLowerCase() || project.excerpt.toLowerCase()).includes(searchQuery.toLowerCase()) ||
-        project.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory =
-        selectedCategory === 'All' || project.tags.some(tag => tag.toLowerCase() === selectedCategory.toLowerCase());
-      return matchesSearch && matchesCategory;
-    });
-  }, [projects, searchQuery, selectedCategory]);
-
-  const paginatedProjects = useMemo(() => {
-    const startIdx = (currentPage - 1) * itemsPerPage;
-    return filteredProjects.slice(startIdx, startIdx + itemsPerPage);
-  }, [filteredProjects, currentPage]);
-
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const { projects, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useProjectFeed({
+    tag: selectedTag === 'All' ? undefined : selectedTag,
+    sort,
+  });
+  const filtered = useMemo(() => {
+    if (!search) return projects;
+    const query = search.toLowerCase();
+    return projects.filter((project: ProjectRecord) =>
+      project.title.toLowerCase().includes(query) ||
+      project.summary.toLowerCase().includes(query) ||
+      project.tags.some((tag: string) => tag.toLowerCase().includes(query))
+    );
+  }, [projects, search]);
 
   return (
-    <div className="min-h-screen">
-      {/* Background */}
-      <div className="fixed inset-0 -z-50">
-        <div className="absolute inset-0 bg-gradient-to-b from-accent/5 via-background to-background" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl opacity-30" />
-      </div>
-
-      {/* Header */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 border-b border-white/10">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Projects</h1>
-            <p className="text-lg text-muted-foreground">
-              Explore {filteredProjects.length} innovative projects built by our community.
-            </p>
-          </motion.div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background/80 to-background">
+      <section className="border-b border-white/5 py-12 px-4 sm:px-6 lg:px-12">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl space-y-4">
+          <p className="inline-flex items-center gap-2 text-sm uppercase tracking-widest text-accent">
+            <Sparkles className="h-4 w-4" /> Phase 4 Launch
+          </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="text-4xl font-bold">Projects</h1>
+              <p className="text-muted-foreground">
+                Browse youth-built software with live Firebase likes, comments, and curation controls.
+              </p>
+            </div>
+            <Link href="/create/project" className="glass-button px-6 py-3 text-sm font-semibold">
+              Publish a project
+            </Link>
+          </div>
+        </motion.div>
       </section>
 
-      {/* Content */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Filters */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-12"
-          >
-            {/* Search */}
-            <div className="mb-6">
-              <div className="relative">
-                <Search
-                  size={20}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <input
-                  type="text"
-                  placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="glass-input w-full pl-12 pr-4"
-                />
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="flex flex-wrap gap-3">
-              <Filter size={18} className="text-muted-foreground mt-1" />
-              {categories.map((cat) => (
+      <section className="py-10 px-4 sm:px-6 lg:px-12">
+        <div className="mx-auto max-w-6xl space-y-10">
+          <div className="grid gap-4 rounded-3xl border border-white/5 bg-white/5 p-6 backdrop-blur lg:grid-cols-3">
+            <label className="relative flex items-center lg:col-span-1">
+              <Search className="absolute left-4 h-4 w-4 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by title, stack, or tag"
+                className="glass-input w-full pl-11"
+              />
+            </label>
+            <div className="flex flex-wrap items-center gap-2 lg:col-span-1">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              {TAGS.map((tag) => (
                 <button
-                  key={cat}
-                  onClick={() => {
-                    setSelectedCategory(cat);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-4 py-2 rounded-lg transition-all ${
-                    selectedCategory === cat
-                      ? 'glass-button'
-                      : 'glass-button-ghost'
-                  }`}
+                  key={tag}
+                  type="button"
+                  onClick={() => setSelectedTag(tag)}
+                  className={selectedTag === tag ? 'glass-button px-3 py-1 text-xs' : 'glass-button-ghost px-3 py-1 text-xs'}
                 >
-                  {cat}
+                  {tag}
                 </button>
               ))}
             </div>
-          </motion.div>
+            <div className="flex gap-2 lg:justify-end">
+              {SORTS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setSort(option)}
+                  className={option === sort ? 'glass-button px-4 py-2 text-xs capitalize' : 'glass-button-ghost px-4 py-2 text-xs capitalize'}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          {/* Projects Grid */}
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center space-y-4">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-accent" />
-                <p className="text-muted-foreground">Loading projects...</p>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="h-8 w-8 animate-spin text-accent" />
+            </div>
+          ) : filtered.length ? (
+            <div className="space-y-10">
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {filtered.map((project: ProjectRecord) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+              <div className="flex justify-center">
+                {hasNextPage && (
+                  <button
+                    type="button"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="glass-button px-6 py-3"
+                  >
+                    {isFetchingNextPage ? 'Loading…' : 'Load more'}
+                  </button>
+                )}
               </div>
             </div>
-          ) : paginatedProjects.length > 0 ? (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
-              >
-                {paginatedProjects.map((project, idx) => (
-                  <motion.div
-                    key={project.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  >
-                    <ProjectCard project={project} />
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
-                  className="flex justify-center items-center gap-2"
-                >
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    className="px-4 py-2 rounded-lg glass-button-ghost disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-10 h-10 rounded-lg transition-all ${
-                          currentPage === page
-                            ? 'glass-button'
-                            : 'glass-button-ghost'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    )
-                  )}
-
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    className="px-4 py-2 rounded-lg glass-button-ghost disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </motion.div>
-              )}
-            </>
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              className="text-center py-20 glass-card"
-            >
-              <h3 className="text-2xl font-bold mb-2">No projects found</h3>
-              <p className="text-muted-foreground mb-6">
-                {searchQuery || selectedCategory !== 'All' 
-                  ? 'Try adjusting your filters or search query' 
-                  : 'Be the first to create a project!'}
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                  setCurrentPage(1);
-                }}
-                className="glass-button"
-              >
-                Clear Filters
-              </button>
-            </motion.div>
+            <div className="rounded-3xl border border-white/5 bg-white/5 p-16 text-center">
+              <p className="text-lg font-semibold">No projects match these filters yet.</p>
+              <p className="text-sm text-muted-foreground">Try a different tag or be the first to publish under this category.</p>
+            </div>
           )}
         </div>
       </section>
-
-      {/* Floating Action Button */}
-      {user && (
-        <Link href="/projects/new">
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-            className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-r from-accent to-accent-secondary shadow-lg shadow-accent/50 flex items-center justify-center z-50 hover:shadow-xl hover:shadow-accent/70 transition-shadow"
-            aria-label="Create new project"
-          >
-            <Plus size={28} className="text-white" />
-          </motion.button>
-        </Link>
-      )}
     </div>
   );
 }

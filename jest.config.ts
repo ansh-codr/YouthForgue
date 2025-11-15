@@ -6,7 +6,9 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-  '^next/image$': '<rootDir>/__mocks__/next/image.tsx'
+    '^next/image$': '<rootDir>/__mocks__/next/image.tsx',
+    '^next/link$': '<rootDir>/__mocks__/next/link.tsx',
+    '^nanoid$': '<rootDir>/__mocks__/nanoid.ts',
   },
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest'

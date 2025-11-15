@@ -6,7 +6,7 @@ import { ArrowRight, Sparkles, Zap, Loader2 } from 'lucide-react';
 import { ProjectCard } from '@/components/ProjectCard';
 import DeveloperCard from '@/components/cards/DeveloperCard';
 import ChallengeCard from '@/components/cards/ChallengeCard';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjectFeed } from '@/src/hooks/useProjects';
 import { useDevelopers } from '@/hooks/useDevelopers';
 import { useChallenges } from '@/hooks/useChallenges';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,7 +27,7 @@ const containerVariants = {
 
 export default function Home() {
   const { user } = useAuth();
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects, isLoading: projectsLoading } = useProjectFeed({ limit: 12, sort: 'featured' });
   const { developers, loading: devsLoading } = useDevelopers();
   const { challenges, loading: challengesLoading } = useChallenges();
   const router = useRouter();

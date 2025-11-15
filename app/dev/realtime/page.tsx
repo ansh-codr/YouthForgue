@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useProjects } from '@/hooks/useProjects';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,10 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, RefreshCw, Database, Zap, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { useProjectFeed, useCreateProject } from '@/src/hooks/useProjects';
+import { slugify } from '@/src/lib/slug';
+import type { ProjectRecord } from '@/src/types/project';
 
 export default function RealtimeDashboard() {
   const { user } = useAuth();
-  const { projects, loading: projectsLoading, createProject } = useProjects();
+  const { projects, isLoading: projectsLoading, refresh } = useProjectFeed({ limit: 20 });
+  const createProjectMutation = useCreateProject();
   const { profile, loading: profileLoading } = useUserProfile();
   
   const [creating, setCreating] = useState(false);
@@ -34,31 +37,31 @@ export default function RealtimeDashboard() {
 
     setCreating(true);
     try {
-      const result = await createProject({
-        title: projectTitle,
-        excerpt: projectDesc || 'No description provided',
-        description: projectDesc,
-        author: {
+      await createProjectMutation.mutateAsync({
+        owner: {
           id: user.uid,
-          name: user.displayName || user.email?.split('@')[0] || 'Anonymous',
-          avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=random`,
+          displayName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
+          avatarUrl:
+            user.photoURL ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=random`,
+          role: 'member',
         },
+        title: projectTitle,
+        slug: slugify(`${projectTitle}-${Date.now()}`),
+        summary: projectDesc || 'No description provided',
+        description: projectDesc || 'No description provided',
         tags: ['test', 'realtime'],
         media: [],
-        repoLink: '',
-        isFeatured: false,
+        visibility: 'public',
       });
 
-      if (result && 'success' in result && result.success) {
-        toast.success('Project created! Watch it appear in real-time below 🎉');
-        setProjectTitle('');
-        setProjectDesc('');
-      } else if (result && 'error' in result) {
-        const errorMsg = typeof result.error === 'string' ? result.error : 'Failed to create project';
-        toast.error(errorMsg);
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to create project');
+      toast.success('Project created! Watch it appear in real-time below 🎉');
+      setProjectTitle('');
+      setProjectDesc('');
+      refresh();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to create project';
+      toast.error(message);
     } finally {
       setCreating(false);
     }
@@ -229,7 +232,7 @@ export default function RealtimeDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {projects.slice(0, 10).map((project) => (
+                {projects.slice(0, 10).map((project: ProjectRecord) => (
                 <div 
                   key={project.id} 
                   className="p-4 rounded-lg bg-white/5 border border-white/10 hover:border-accent/50 transition-all"
@@ -237,18 +240,18 @@ export default function RealtimeDashboard() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{project.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{project.excerpt}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{project.summary}</p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span>By {project.author.name}</span>
+                        <span>By {project.owner.displayName}</span>
                         <span>•</span>
-                        <span>{project.likeCount} likes</span>
+                        <span>{project.likesCount} likes</span>
                         <span>•</span>
-                        <span>{project.commentCount} comments</span>
+                        <span>{project.commentsCount} comments</span>
                         <span>•</span>
                         <span>{new Date(project.createdAt).toLocaleString()}</span>
                       </div>
                       <div className="flex gap-2 mt-2">
-                        {project.tags.map((tag) => (
+                        {project.tags.map((tag: string) => (
                           <span 
                             key={tag} 
                             className="text-xs px-2 py-1 rounded bg-accent/10 text-accent border border-accent/20"

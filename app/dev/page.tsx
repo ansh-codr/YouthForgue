@@ -1,12 +1,12 @@
 'use client';
 
 import ProjectCard from '@/components/ProjectCard';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjectFeed } from '@/src/hooks/useProjects';
 import { TagPill } from '@/components/TagPill/TagPill';
 import CommentThread from '@/components/CommentThread/CommentThread';
 
 export default function DevPage() {
-  const { projects } = useProjects();
+  const { projects } = useProjectFeed({ limit: 3 });
   const project = projects[0];
 
   return (
