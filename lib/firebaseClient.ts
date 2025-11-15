@@ -28,6 +28,11 @@ if (missingKeys.length && process.env.NODE_ENV !== 'production' && process.env.N
 let cachedApp: FirebaseApp | null = null;
 
 export const getFirebaseApp = (): FirebaseApp => {
+  // Guard against server-side/build-time initialization
+  if (typeof window === 'undefined') {
+    throw new Error('[firebaseClient] Firebase can only be initialized in the browser');
+  }
+
   if (cachedApp) {
     return cachedApp;
   }

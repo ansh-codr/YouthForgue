@@ -7,6 +7,7 @@ import { QueryProvider } from '@/components/providers/QueryProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://youthforge.netlify.app'),
   title: 'YouthForge | Connect, Collaborate, Create',
   description: 'YouthForge is a global platform for young developers to collaborate on projects, participate in challenges, and build their tech careers together.',
   keywords: 'developers, projects, challenges, collaboration, youth, tech, community',
