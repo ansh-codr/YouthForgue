@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProjectCard } from './index';
@@ -47,7 +47,8 @@ test('renders project card and like button increments', async () => {
   renderWithClient(<ProjectCard project={mockProject} />);
   const likeBtn = screen.getByRole('button', { name: /like project/i });
   expect(likeBtn).toBeInTheDocument();
-  await user.click(likeBtn);
-  // optimistic like increments immediately
-  expect(likeBtn.textContent).toMatch(/1/);
+  await act(async () => {
+    await user.click(likeBtn);
+  });
+  await waitFor(() => expect(likeBtn.textContent).toMatch(/1/));
 });

@@ -18,7 +18,7 @@ const missingKeys = Object.entries(firebaseConfig)
   .filter(([, value]) => !value)
   .map(([key]) => key);
 
-if (missingKeys.length && process.env.NODE_ENV !== 'production') {
+if (missingKeys.length && process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   console.warn(
     '[firebaseClient] Missing Firebase config values:',
     missingKeys.join(', ')

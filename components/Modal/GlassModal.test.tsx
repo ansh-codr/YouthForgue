@@ -4,7 +4,13 @@ import { GlassModal } from './GlassModal';
 // Render as controlled open to avoid Radix trigger/portal complexity in unit test
 test('renders modal content when open', () => {
   render(
-    <GlassModal trigger={<button>Open</button>} open onOpenChange={() => {}}>
+    <GlassModal
+      trigger={<button>Open</button>}
+      open
+      onOpenChange={() => {}}
+      title="Test Modal"
+      description="Modal rendered for testing"
+    >
       <div>Content</div>
     </GlassModal>
   );
