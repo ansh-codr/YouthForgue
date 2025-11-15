@@ -3,23 +3,6 @@
 
 [build]
   command = "npm run build"
-  # Do NOT set publish directory - let @netlify/plugin-nextjs manage it
-  # The plugin automatically handles Next.js output for dynamic/SSR routes
 
 [build.environment]
-  # Ensure Node 18+ for Next.js 13
   NODE_VERSION = "18"
-
-# Redirect all requests to Next.js for proper routing
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/___netlify-handler"
-  status = 200
-  force = false
-  
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
